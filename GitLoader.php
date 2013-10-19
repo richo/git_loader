@@ -4,11 +4,9 @@ class GitLoader
 {
     private $tree;
 
-    public function __construct($tree, $root)
+    public function __construct($tree)
     {
         $this->tree = $tree;
-        // XXX This doesn't what you expect for nested trees
-        $this->root = $root;
     }
 
     public function getCode($path)
@@ -43,10 +41,9 @@ class GitLoader
 class LibGitLoader extends GitLoader
 {
     private $repo;
-    public function __construct($tree, $root)
+    public function __construct($tree)
     {
         $this->tree = $tree;
-        $this->root = $root;
         $this->repo = new Git2\Repository(".");
     }
 
@@ -58,9 +55,6 @@ class LibGitLoader extends GitLoader
         // Specify multiple paths, eventually
         $els = explode("/", $path);
         $_tree = $this->repo->lookup($tree);
-        if ($this->root !== null) {
-            $_tree = $_tree->getSubtree($this->root);
-        }
 
         while(true) {
             $node = array_shift($els);
