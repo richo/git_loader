@@ -69,9 +69,7 @@ class LibGitLoader extends GitLoader
                 if ($blob === false) {
                     return null;
                 }
-                $obj = $this->repo->lookup($blob->oid);
-                eval("?>" . $obj->getContent());
-                return true;
+                return $this->repo->lookup($blob->oid);
             } else {
                 $_tree = $_tree->getSubtree($node);
                 if ($_tree === false) {
