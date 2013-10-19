@@ -4,12 +4,14 @@ class GitLoader
 {
     private $tree;
 
-    public function __construct($tree)
+    public function __construct($tree, $root)
     {
         $this->tree = $tree;
+        // XXX This doesn't what you expect for nested trees
+        $this->root = $root;
     }
 
-    private function getCode($path)
+    public function getCode($path)
     {
         $cmd = sprintf("git show %s:classes/%s.php 2>/dev/null",
             escapeshellarg($this->tree),
@@ -35,5 +37,50 @@ class GitLoader
     public function register()
     {
         spl_autoload_register(array($this, 'loadClass'), true, true);
+    }
+}
+
+class LibGitLoader extends GitLoader
+{
+    private $repo;
+    public function __construct($tree, $root)
+    {
+        $this->tree = $tree;
+        $this->root = $root;
+        $this->repo = new Git2\Repository(".");
+    }
+
+    public function getCode($path)
+    {
+        // Solve the path of the object
+        // TODO: Consider storing a treecache
+        $tree = $this->tree;
+        // Specify multiple paths, eventually
+        $els = explode("/", $path);
+        $_tree = $this->repo->lookup($tree);
+        if ($this->root !== null) {
+            $_tree = $_tree->getSubtree($this->root);
+        }
+
+        while(true) {
+            $node = array_shift($els);
+            if (empty($els)) {
+                $blob = $_tree->getEntryByName($node . ".php");
+                if ($blob === false) {
+                    return null;
+                }
+                $obj = $this->repo->lookup($blob->oid);
+                eval("?>" . $obj->getContent());
+                return true;
+            } else {
+                $_tree = $_tree->getSubtree($node);
+                if ($_tree === false) {
+                    // Not in our tree
+                    return null;
+                }
+                continue;
+            }
+        }
+        return null;
     }
 }
