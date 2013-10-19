@@ -47,6 +47,18 @@ class LibGitLoader extends GitLoader
         $this->repo = new Git2\Repository(".");
     }
 
+    /* exposes require'like functionality, except that it operates inside the given tree
+     */
+    public function require_path($path)
+    {
+        if (($code = $this->getCode($path)) !== null) {
+            eval("?>" . $code);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public function getCode($path)
     {
         // Solve the path of the object
