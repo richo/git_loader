@@ -63,28 +63,25 @@ class LibGitLoader extends GitLoader
     {
         // Solve the path of the object
         // TODO: Consider storing a treecache
-        $tree = $this->tree;
-        // Specify multiple paths, eventually
         $els = explode("/", $path);
-        $_tree = $this->repo->lookup($tree);
 
-        while(true) {
-            $node = array_shift($els);
-            if (empty($els)) {
-                $blob = $_tree->getEntryByName($node . ".php");
-                if ($blob === false) {
-                    return null;
-                }
-                return $this->repo->lookup($blob->oid);
-            } else {
-                $_tree = $_tree->getSubtree($node);
-                if ($_tree === false) {
-                    // Not in our tree
-                    return null;
-                }
-                continue;
+        $tree = $this->repo->lookup($this->tree);
+        $node = array_shift($els);
+
+        do {
+            $tree = $tree->getSubtree($node);
+            if ($tree === false) {
+                // Not in our tree
+                return null;
             }
+            $node = array_shift($els);
+        } while (!empty($els));
+
+        $blob = $tree->getEntryByName($node . ".php");
+        if ($blob === false) {
+            return null;
         }
-        return null;
+
+        return $this->repo->lookup($blob->oid);
     }
 }
