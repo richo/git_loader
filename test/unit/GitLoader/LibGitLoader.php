@@ -1,6 +1,7 @@
 <?php
 
-define(TREE, "populate with a tree");
+// classes/ on branch testclasses
+define(TREE, "eceafd14a0f3240fbe24b58486741d7e718627eb");
 
 class LibGitLoader_Loads_Test extends PHPUnit_Framework_TestCase
 {
